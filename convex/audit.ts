@@ -1,7 +1,7 @@
 // Convex audit logging for authentication events
 
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, GenericMutationCtx } from "./_generated/server";
 
 // Event types for audit logging
 export type AuthEventType =
@@ -174,7 +174,7 @@ export const cleanupOldAuditEvents = mutation({
  * This can be called from other mutation handlers
  */
 export async function createAuditEvent(
-    ctx: any,
+    ctx: GenericMutationCtx<any>,
     params: {
         userId?: string;
         event: AuthEventType;
