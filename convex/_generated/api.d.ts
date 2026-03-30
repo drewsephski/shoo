@@ -9,8 +9,10 @@
  */
 
 import type * as audit from "../audit.js";
+import type * as billing from "../billing.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as sessions from "../sessions.js";
+import type * as tenants from "../tenants.js";
 import type * as users from "../users.js";
 
 import type {
@@ -21,8 +23,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   audit: typeof audit;
+  billing: typeof billing;
   rateLimit: typeof rateLimit;
   sessions: typeof sessions;
+  tenants: typeof tenants;
   users: typeof users;
 }>;
 

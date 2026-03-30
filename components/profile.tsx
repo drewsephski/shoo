@@ -1,9 +1,16 @@
 "use client";
 
 import { useShooAuth } from "@/lib/shoo-convex";
+import { useRouter } from "next/navigation";
 
 export function Profile() {
+    const router = useRouter();
     const { identity, claims, loading, signIn, clearIdentity } = useShooAuth();
+
+    const handleSignOut = () => {
+        clearIdentity();
+        router.push("/");
+    };
 
     if (loading) {
         return (
@@ -40,7 +47,7 @@ export function Profile() {
                 <span className="text-sm font-medium text-stone-900">{claims.name}</span>
             )}
             <button
-                onClick={clearIdentity}
+                onClick={handleSignOut}
                 className="rounded-full px-3 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-red-50 hover:text-red-600"
             >
                 Sign out

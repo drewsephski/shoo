@@ -1,4 +1,4 @@
-// Convex audit logging for authentication events
+// Convex audit logging for authentication events - Multi-tenant
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
@@ -15,11 +15,11 @@ export type AuthEventType =
     | "token_verification_failed";
 
 /**
- * Log an authentication event
- * Called from auth flows to create security audit trail
+ * Log an authentication event (tenant isolated)
  */
 export const logAuthEvent = mutation({
     args: {
+        tenantId: v.id("tenants"),
         userId: v.optional(v.string()),
         event: v.union(
             v.literal("sign_in_success"),
@@ -38,35 +38,35 @@ export const logAuthEvent = mutation({
             attemptsInWindow: v.optional(v.number()),
         })),
     },
-    handler: async (ctx, { userId, event, ipAddress, userAgent, metadata }) => {
-        const timestamp = Date.now();
-
+    handler: async (ctx, { tenantId, userId, event, ipAddress, userAgent, metadata }) => {
         await ctx.db.insert("auditEvents", {
+            tenantId,
             userId,
             event,
             ipAddress,
             userAgent,
             metadata,
-            timestamp,
+            timestamp: Date.now(),
         });
-
         return true;
     },
 });
 
 /**
- * Get audit log for a specific user
- * For admin dashboard and user self-service
+ * Get audit log for a specific user (tenant isolated)
  */
 export const getUserAuditLog = query({
     args: {
+        tenantId: v.id("tenants"),
         userId: v.string(),
         limit: v.optional(v.number()),
     },
-    handler: async (ctx, { userId, limit }) => {
+    handler: async (ctx, { tenantId, userId, limit }) => {
         const events = await ctx.db
             .query("auditEvents")
-            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .withIndex("by_tenantId_userId", (q) =>
+                q.eq("tenantId", tenantId).eq("userId", userId)
+            )
             .order("desc")
             .take(limit ?? 50);
 
@@ -75,11 +75,11 @@ export const getUserAuditLog = query({
 });
 
 /**
- * Get recent audit events across all users
- * For admin dashboard security overview
+ * Get recent audit events for a tenant
  */
 export const getRecentAuditEvents = query({
     args: {
+        tenantId: v.id("tenants"),
         limit: v.optional(v.number()),
         eventType: v.optional(v.union(
             v.literal("sign_in_success"),
@@ -91,43 +91,50 @@ export const getRecentAuditEvents = query({
             v.literal("token_verification_failed")
         )),
     },
-    handler: async (ctx, { limit, eventType }) => {
-        // Build query with optional event type filter
-        const events = eventType
-            ? await ctx.db
+    handler: async (ctx, { tenantId, limit, eventType }) => {
+        let events;
+
+        if (eventType) {
+            events = await ctx.db
                 .query("auditEvents")
-                .withIndex("by_event", (q) => q.eq("event", eventType))
-                .order("desc")
-                .take(limit ?? 100)
-            : await ctx.db
-                .query("auditEvents")
+                .withIndex("by_tenantId_event", (q) =>
+                    q.eq("tenantId", tenantId).eq("event", eventType)
+                )
                 .order("desc")
                 .take(limit ?? 100);
+        } else {
+            events = await ctx.db
+                .query("auditEvents")
+                .withIndex("by_tenantId_timestamp", (q) => q.eq("tenantId", tenantId))
+                .order("desc")
+                .take(limit ?? 100);
+        }
 
         return events;
     },
 });
 
 /**
- * Get security summary for a user
- * Aggregates recent auth activity for risk assessment
+ * Get security summary for a user (tenant isolated)
  */
 export const getUserSecuritySummary = query({
     args: {
+        tenantId: v.id("tenants"),
         userId: v.string(),
-        hours: v.optional(v.number()), // Lookback period (default 24 hours)
+        hours: v.optional(v.number()),
     },
-    handler: async (ctx, { userId, hours }) => {
+    handler: async (ctx, { tenantId, userId, hours }) => {
         const lookbackHours = hours ?? 24;
         const cutoff = Date.now() - (lookbackHours * 60 * 60 * 1000);
 
         const events = await ctx.db
             .query("auditEvents")
-            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .withIndex("by_tenantId_userId", (q) =>
+                q.eq("tenantId", tenantId).eq("userId", userId)
+            )
             .filter((q) => q.gte(q.field("timestamp"), cutoff))
             .collect();
 
-        // Aggregate statistics
         const summary = {
             totalEvents: events.length,
             successfulSignIns: events.filter(e => e.event === "sign_in_success").length,
@@ -143,22 +150,21 @@ export const getUserSecuritySummary = query({
 });
 
 /**
- * Clean up old audit events
- * Run periodically to prevent table bloat
- * Default retention: 90 days
+ * Clean up old audit events (tenant isolated)
  */
 export const cleanupOldAuditEvents = mutation({
     args: {
+        tenantId: v.id("tenants"),
         retentionDays: v.optional(v.number()),
     },
-    handler: async (ctx, { retentionDays }) => {
+    handler: async (ctx, { tenantId, retentionDays }) => {
         const days = retentionDays ?? 90;
         const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
 
-        // Get old events using timestamp index
         const oldEvents = await ctx.db
             .query("auditEvents")
-            .withIndex("by_timestamp", (q) => q.lt("timestamp", cutoff))
+            .withIndex("by_tenantId_timestamp", (q) => q.eq("tenantId", tenantId))
+            .filter((q) => q.lt(q.field("timestamp"), cutoff))
             .collect();
 
         let deletedCount = 0;

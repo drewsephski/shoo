@@ -2,10 +2,11 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { createShooAuth } from "@shoojs/react";
 import { generateDeviceFingerprint } from "@/lib/device";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Dynamic rendering - this page uses browser APIs (window.location)
 export const dynamic = "force-dynamic";
@@ -40,8 +41,15 @@ function CallbackHandler() {
     const searchParams = useSearchParams();
     const [verified, setVerified] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    
+    // Get mutations - these now need tenant context
     const getOrCreateUser = useMutation(api.users.getOrCreateUser);
+    const getOrCreateUserByPublicKey = useMutation(api.users.getOrCreateUserByPublicKey);
     const createSession = useMutation(api.sessions.createSession);
+    
+    // Check for tenant context (passed from SDK or stored)
+    const tenantPublicKey = searchParams.get("pk") || (typeof window !== "undefined" ? localStorage.getItem("shooauth_pending_tenant") : null);
+    const isTenantMode = !!tenantPublicKey;
 
     useEffect(() => {
         async function processCallback() {
@@ -49,8 +57,8 @@ function CallbackHandler() {
                 // Check if already authenticated (e.g., from previous successful exchange)
                 const existingIdentity = getShooAuth().getIdentity();
                 if (existingIdentity?.userId) {
-                    console.log("Already authenticated, redirecting to dashboard...");
-                    window.location.href = "/dashboard";
+                    console.log("Already authenticated, redirecting to admin...");
+                    window.location.href = "/admin";
                     return;
                 }
 
@@ -76,10 +84,21 @@ function CallbackHandler() {
                 console.log("Token exchange successful, userId:", token.pairwise_sub);
 
                 // Verify token with backend
+                const verifyBody: { idToken: string; apiKey?: string } = { 
+                    idToken: token.id_token 
+                };
+                
+                // If in tenant mode, include the API key
+                if (tenantPublicKey) {
+                    // In real implementation, we'd look up the API key from public key
+                    // For now, we pass the public key as a hint
+                    verifyBody.apiKey = tenantPublicKey;
+                }
+                
                 const res = await fetch("/api/verify", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ idToken: token.id_token }),
+                    body: JSON.stringify(verifyBody),
                 });
 
                 if (!res.ok) {
@@ -91,43 +110,77 @@ function CallbackHandler() {
                 const data = await res.json();
                 console.log("Server-verified userId:", data.userId);
 
-                // Sync user to Convex
+                // Sync user to Convex (with tenant context if applicable)
+                let tenantId: string | undefined;
                 try {
-                    await getOrCreateUser({
-                        userId: data.userId,
-                        email: data.email,
-                        name: data.name,
-                    });
-                    console.log("User synced to Convex");
+                    if (isTenantMode && tenantPublicKey) {
+                        // Tenant mode - look up tenant by public key and create/sync user
+                        const result = await getOrCreateUserByPublicKey({
+                            publicKey: tenantPublicKey,
+                            userId: data.userId,
+                            email: data.email,
+                            name: data.name,
+                        });
+                        tenantId = result.tenantId;
+                        console.log("User synced to Convex tenant:", tenantId);
+                    } else {
+                        // Legacy mode - no tenant
+                        await getOrCreateUser({
+                            userId: data.userId,
+                            email: data.email,
+                            name: data.name,
+                        });
+                        console.log("User synced to Convex (legacy mode)");
+                    }
                 } catch (err) {
                     console.error("Failed to sync user to Convex:", err);
                     setError("Failed to create user record");
                     return;
                 }
 
-                // Create session record with device metadata
+                // Create session record (with tenant context if applicable)
                 try {
                     const tokenHash = await hashToken(token.id_token);
-                    // Session expires in 30 days
                     const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
-                    
-                    // Capture device info
                     const userAgent = navigator.userAgent;
-                    // Note: IP address is captured server-side in the API route
                     const deviceFingerprint = generateDeviceFingerprint("client", userAgent);
                     
-                    await createSession({
-                        userId: data.userId,
-                        tokenHash,
-                        expiresAt,
-                        ipAddress: undefined, // Set server-side
-                        userAgent,
-                        deviceFingerprint,
-                    });
-                    console.log("Session created in Convex with device metadata");
+                    if (isTenantMode && tenantId) {
+                        // Tenant mode - create session in the tenant
+                        await createSession({
+                            userId: data.userId,
+                            tokenHash,
+                            expiresAt,
+                            ipAddress: undefined,
+                            userAgent,
+                            deviceFingerprint,
+                            tenantId: tenantId as Id<"tenants">,
+                        });
+                        // Also store session token in localStorage for SDK use
+                        if (data.sessionToken && tenantPublicKey) {
+                            const storageKey = `shooauth_${tenantPublicKey.slice(-8)}_session`;
+                            localStorage.setItem(storageKey, JSON.stringify({
+                                token: data.sessionToken,
+                                user: { userId: data.userId, email: data.email, name: data.name },
+                                expiresAt: data.expiresAt,
+                            }));
+                        }
+                        console.log("Tenant session created");
+                    } else {
+                        // Legacy mode - create session directly
+                        await createSession({
+                            userId: data.userId,
+                            tokenHash,
+                            expiresAt,
+                            ipAddress: undefined,
+                            userAgent,
+                            deviceFingerprint,
+                            tenantId: undefined
+                        });
+                        console.log("Legacy session created");
+                    }
                 } catch (err) {
                     console.error("Failed to create session:", err);
-                    // Don't fail sign-in if session creation fails
                 }
 
                 setVerified(true);
@@ -149,7 +202,7 @@ function CallbackHandler() {
         }
 
         processCallback();
-    }, [searchParams, router, getOrCreateUser, createSession]);
+    }, [searchParams, router, getOrCreateUser, getOrCreateUserByPublicKey, createSession, isTenantMode, tenantPublicKey]);
 
     if (error) {
         return (

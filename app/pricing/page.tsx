@@ -24,30 +24,54 @@ const faqData = [
 ];
 
 function FaqAccordion() {
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+    const handleToggle = (index: number) => {
+        setExpandedIndex(expandedIndex === index ? null : index);
+    };
+
+    const cardVariants = {
+        collapsed: {
+            height: "60px",
+            transition: { type: "spring", stiffness: 300, damping: 15 },
+        },
+        expanded: {
+            height: "auto",
+            transition: { type: "spring", stiffness: 300, damping: 15 },
+        },
+    };
+
+    const contentVariants = {
+        collapsed: { opacity: 0 },
+        expanded: {
+            opacity: 1,
+            transition: { delay: 0.1 },
+        },
+    };
+
+    const chevronVariants = {
+        collapsed: { rotate: 0 },
+        expanded: { rotate: 180 },
+    };
 
     return (
         <div className="space-y-3">
-            {faqData.map((faq, i) => (
+            {faqData.map((faq, index) => (
                 <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.3 }}
-                    className="rounded-xl border border-stone-200 bg-white overflow-hidden"
+                    key={index}
+                    className="cursor-pointer select-none overflow-hidden rounded-xl border border-stone-200 bg-white"
+                    variants={cardVariants}
+                    initial="collapsed"
+                    animate={expandedIndex === index ? "expanded" : "collapsed"}
+                    onClick={() => handleToggle(index)}
                 >
-                    <button
-                        onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                        className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-stone-50"
-                    >
-                        <span className="font-medium text-stone-900 pr-4">{faq.q}</span>
-                        <motion.div
-                            animate={{ rotate: openIndex === i ? 180 : 0 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="flex-shrink-0"
-                        >
+                    <div className="flex h-[60px] items-center justify-between px-5">
+                        <h3 className="m-0 pr-4 text-sm font-semibold text-stone-900">
+                            {faq.q}
+                        </h3>
+                        <motion.div variants={chevronVariants}>
                             <svg
-                                className="h-5 w-5 text-stone-400"
+                                className="h-5 w-5 flex-shrink-0 text-stone-400"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -60,23 +84,17 @@ function FaqAccordion() {
                                 />
                             </svg>
                         </motion.div>
-                    </button>
-                    <AnimatePresence initial={false}>
-                        {openIndex === i && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                            >
-                                <div className="px-5 pb-5">
-                                    <p className="text-sm leading-relaxed text-stone-600">
-                                        {faq.a}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    </div>
+                    <motion.div
+                        className="select-none px-5 pb-5"
+                        variants={contentVariants}
+                        initial="collapsed"
+                        animate={expandedIndex === index ? "expanded" : "collapsed"}
+                    >
+                        <p className="m-0 text-sm leading-relaxed text-stone-600">
+                            {faq.a}
+                        </p>
+                    </motion.div>
                 </motion.div>
             ))}
         </div>
