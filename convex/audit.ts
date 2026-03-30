@@ -1,7 +1,8 @@
 // Convex audit logging for authentication events
 
 import { v } from "convex/values";
-import { query, mutation, GenericMutationCtx } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
+import { GenericMutationCtx } from "convex/server";
 
 // Event types for audit logging
 export type AuthEventType =
@@ -91,14 +92,14 @@ export const getRecentAuditEvents = query({
         )),
     },
     handler: async (ctx, { limit, eventType }) => {
-        let query = ctx.db.query("auditEvents");
+        let eventsQuery = ctx.db.query("auditEvents");
 
         // Filter by event type if specified
         if (eventType) {
-            query = query.withIndex("by_event", (q) => q.eq("event", eventType));
+            eventsQuery = eventsQuery.withIndex("by_event", (q) => q.eq("event", eventType));
         }
 
-        const events = await query
+        const events = await eventsQuery
             .order("desc")
             .take(limit ?? 100);
 
@@ -122,7 +123,7 @@ export const getUserSecuritySummary = query({
         const events = await ctx.db
             .query("auditEvents")
             .withIndex("by_userId", (q) => q.eq("userId", userId))
-            .filter((q) => q.gte("timestamp", cutoff))
+            .filter((q) => q.gte(q.field("timestamp"), cutoff))
             .collect();
 
         // Aggregate statistics
