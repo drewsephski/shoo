@@ -92,16 +92,17 @@ export const getRecentAuditEvents = query({
         )),
     },
     handler: async (ctx, { limit, eventType }) => {
-        let eventsQuery = ctx.db.query("auditEvents");
-
-        // Filter by event type if specified
-        if (eventType) {
-            eventsQuery = eventsQuery.withIndex("by_event", (q) => q.eq("event", eventType));
-        }
-
-        const events = await eventsQuery
-            .order("desc")
-            .take(limit ?? 100);
+        // Build query with optional event type filter
+        const events = eventType
+            ? await ctx.db
+                .query("auditEvents")
+                .withIndex("by_event", (q) => q.eq("event", eventType))
+                .order("desc")
+                .take(limit ?? 100)
+            : await ctx.db
+                .query("auditEvents")
+                .order("desc")
+                .take(limit ?? 100);
 
         return events;
     },
