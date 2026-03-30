@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Head from "next/head";
+import { CodeBlock } from "@/components/code-block";
 
 const sidebarItems = [
     {
@@ -9,15 +10,14 @@ const sidebarItems = [
         items: [
             { name: "Introduction", href: "#introduction" },
             { name: "Quick Start", href: "#quickstart" },
-            { name: "Installation", href: "#installation" },
+            { name: "SDK Installation", href: "#installation" },
         ],
     },
     {
         title: "Authentication",
         items: [
-            { name: "Email & Password", href: "#email-password" },
-            { name: "OAuth Providers", href: "#oauth" },
-            { name: "Two-Factor Auth", href: "#2fa" },
+            { name: "OAuth with Shoo", href: "#oauth" },
+            { name: "OAuth Callback", href: "#callback" },
             { name: "Session Management", href: "#sessions" },
         ],
     },
@@ -26,15 +26,15 @@ const sidebarItems = [
         items: [
             { name: "useShooAuth", href: "#useshooauth" },
             { name: "signIn", href: "#signin" },
-            { name: "signOut", href: "#signout" },
-            { name: "verifyToken", href: "#verifytoken" },
+            { name: "Configuration", href: "#config" },
+            { name: "Clear Identity", href: "#signout" },
+            { name: "Token Verification", href: "#verifytoken" },
         ],
     },
     {
         title: "Deployment",
         items: [
-            { name: "Environment Variables", href: "#env" },
-            { name: "Webhooks", href: "#webhooks" },
+            { name: "Environment Setup", href: "#env" },
             { name: "Security", href: "#security" },
         ],
     },
@@ -87,25 +87,8 @@ export default function DocsPage() {
                     margin-bottom: 0.5rem;
                     color: #57534e;
                 }
-                .prose code {
-                    background-color: #f5f5f4;
-                    padding: 0.125rem 0.375rem;
-                    border-radius: 0.25rem;
-                    font-size: 0.875em;
-                    font-family: var(--font-geist-mono), monospace;
-                }
-                .prose pre {
-                    background-color: #1c1917;
-                    color: #e7e5e4;
-                    padding: 1rem;
-                    border-radius: 0.75rem;
-                    overflow-x: auto;
-                    margin-bottom: 1.5rem;
-                }
-                .prose pre code {
-                    background-color: transparent;
-                    padding: 0;
-                    color: inherit;
+                html {
+                    scroll-behavior: smooth;
                 }
             `}</style>
 
@@ -113,9 +96,8 @@ export default function DocsPage() {
                 <div className="flex pt-4">
                     {/* Sidebar */}
                     <aside
-                        className={`fixed inset-y-0 left-0 z-40 mt-20 w-64 transform overflow-y-auto border-r border-stone-200 bg-white/80 px-4 py-6 backdrop-blur-xl transition-transform lg:sticky lg:top-20 lg:mt-0 lg:translate-x-0 lg:bg-transparent lg:backdrop-blur-none ${
-                            mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                        }`}
+                        className={`fixed inset-y-0 left-0 z-40 mt-20 w-64 transform overflow-y-auto border-r border-stone-200 bg-white/80 px-4 py-6 backdrop-blur-xl transition-all duration-300 ease-out lg:sticky lg:top-20 lg:mt-0 lg:h-[calc(100vh-5rem)] lg:translate-x-0 lg:bg-transparent lg:backdrop-blur-none ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                            }`}
                     >
                         <nav className="space-y-6">
                             {sidebarItems.map((section) => (
@@ -128,15 +110,24 @@ export default function DocsPage() {
                                             <li key={item.name}>
                                                 <a
                                                     href={item.href}
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
                                                         setActiveSection(item.href.slice(1));
                                                         setMobileSidebarOpen(false);
+                                                        const element = document.querySelector(item.href);
+                                                        if (element) {
+                                                            const offset = 100; // Account for fixed header
+                                                            const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+                                                            window.scrollTo({
+                                                                top: elementPosition - offset,
+                                                                behavior: "smooth"
+                                                            });
+                                                        }
                                                     }}
-                                                    className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                                                        activeSection === item.href.slice(1)
-                                                            ? "bg-stone-200 text-stone-900"
-                                                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-                                                    }`}
+                                                    className={`block rounded-lg px-3 py-2 text-sm transition-all duration-200 ${activeSection === item.href.slice(1)
+                                                            ? "bg-stone-200 text-stone-900 translate-x-1"
+                                                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 hover:translate-x-1"
+                                                        }`}
                                                 >
                                                     {item.name}
                                                 </a>
@@ -162,9 +153,9 @@ export default function DocsPage() {
                             <div
                                 style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both" }}
                             >
-                                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/70 px-4 py-1.5 text-[13px] text-stone-600 shadow-sm backdrop-blur-sm">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
-                                    Documentation v1.1
+                                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/70 px-4 py-1.5 text-[13px] text-amber-700 shadow-sm backdrop-blur-sm">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                    Early WIP — Use at your own risk
                                 </span>
                             </div>
 
@@ -178,192 +169,256 @@ export default function DocsPage() {
                             <div style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}>
                                 <h2 id="introduction">Introduction</h2>
                                 <p>
-                                    Shoo Auth is a modern authentication platform designed for Next.js applications.
-                                    It provides secure, flexible authentication with minimal setup and maximum developer experience.
+                                    Shoo is a free, open-source OAuth provider that lets you add secure authentication
+                                    to any application in minutes. No signup required, no API keys, no backend needed.
                                 </p>
                                 <p>
-                                    Built on top of Convex, Shoo handles the complexity of user management, session persistence,
-                                    and security so you can focus on building your application.
+                                    Point your redirect URI to <code>shoo.dev</code> and go. Shoo handles the OAuth flow,
+                                    identity tokens, and session management. You get verified user identities via JWT.
                                 </p>
 
                                 <h2 id="quickstart">Quick Start</h2>
                                 <p>
-                                    Get started with Shoo Auth in under 5 minutes. Our SDK integrates seamlessly with Next.js App Router
-                                    and provides everything you need for secure authentication.
+                                    Add Shoo to any app with just 2 lines of code. Works with React, Vue, vanilla JS,
+                                    or any framework.
                                 </p>
-                                <pre><code>{`import { useShooAuth } from "@/lib/shoo-convex";
+                                <CodeBlock
+                                    code={`<!-- 1. Add the script -->
+<script src="https://shoo.dev/shoo.js"></script>
 
-export default function Page() {
-  const { signIn, signOut, identity } = useShooAuth();
+<!-- 2. Add a login link -->
+<a href="https://shoo.dev/sign-in?redirect_uri=https://yourapp.com/callback">
+  Login
+</a>`}
+                                    language="html"
+                                />
 
-  return identity.userId ? (
-    <button onClick={signOut}>Sign Out</button>
-  ) : (
-    <button onClick={() => signIn()}>Sign In</button>
-  );
-}`}</code></pre>
-
-                                <h2 id="installation">Installation</h2>
+                                <h2 id="installation">SDK Installation</h2>
                                 <p>
-                                    Shoo Auth works with Next.js 14+ and requires Convex as your backend.
-                                    Follow these steps to add authentication to your application.
+                                    For React apps, use our official SDK for a smoother integration with hooks and
+                                    automatic session management.
                                 </p>
-                                <pre><code>{`# Install the Shoo SDK
-npm install @shoo/auth
+                                <CodeBlock
+                                    code={`# Install the Shoo React SDK
+bun add @shoojs/react @shoojs/auth
 
-# Configure environment variables
-echo "SHOO_API_KEY=your_api_key" >> .env.local`}</code></pre>
+# Or use the CDN (works with any framework)
+<script src="https://cdn.jsdelivr.net/npm/@shoojs/auth"></script>`}
+                                    language="bash"
+                                />
 
-                                <h2 id="email-password">Email & Password</h2>
+                                <h2 id="oauth">OAuth with Shoo</h2>
                                 <p>
-                                    Email and password authentication is the foundation of Shoo Auth.
-                                    Our implementation includes secure password hashing, rate limiting,
-                                    and automatic account lockout protection.
+                                    Shoo provides OAuth/OpenID Connect authentication. Users are redirected to shoo.dev
+                                    to complete sign-in, then returned to your application with a verified identity token.
                                 </p>
-                                <pre><code>{`// Sign up with email and password
-const { signUp } = useShooAuth();
+                                <CodeBlock
+                                    code={`// Sign in with Shoo (redirects to shoo.dev)
+await signIn({ requestPii: true });  // Request name/email
 
-await signUp({
-  email: "user@example.com",
-  password: "securePassword123",
-});`}</code></pre>
+// Or minimal sign-in (just userId)
+await signIn();`}
+                                    language="typescript"
+                                />
 
-                                <h2 id="oauth">OAuth Providers</h2>
-                                <p>
-                                    Shoo supports popular OAuth providers out of the box. Enable Google,
-                                    GitHub, or custom OAuth integrations with a single configuration.
-                                </p>
-                                <pre><code>{`// Sign in with Google
-await signIn({ provider: "google" });
-
-// Sign in with GitHub
-await signIn({ provider: "github" });`}</code></pre>
-
-                                <h2 id="2fa">Two-Factor Auth</h2>
-                                <p>
-                                    Protect your users with time-based one-time passwords (TOTP).
-                                    Shoo makes 2FA setup simple with QR codes and backup codes.
-                                </p>
-                                <pre><code>{`// Enable 2FA
-const { enable2FA } = useShooAuth();
-
-const { qrCode, backupCodes } = await enable2FA();
-
-// Verify 2FA code
-await signIn({
-  email: "user@example.com",
-  password: "password",
-  totpCode: "123456",
-});`}</code></pre>
 
                                 <h2 id="sessions">Session Management</h2>
                                 <p>
-                                    Sessions are automatically persisted across browser restarts using secure,
-                                    httpOnly cookies. Shoo handles token refresh, expiration, and revocation
-                                    without any additional code.
+                                    Shoo handles sessions automatically. Tokens are stored in localStorage and
+                                    refreshed as needed. The React SDK provides automatic session monitoring.
                                 </p>
+                                <CodeBlock
+                                    code={`const { sessionState, checkSession } = useShooAuth();
+
+// Session states: "unknown" | "active" | "login_required"
+if (sessionState === "login_required") {
+  // Redirect to sign in
+}
+
+// Explicitly check session validity
+const result = await checkSession();
+// { status: "active" } | { status: "login_required", reason: "expired" | "revoked" | "invalid_token" }`}
+                                    language="typescript"
+                                />
+
+                                <h2 id="callback">OAuth Callback</h2>
+                                <p>
+                                    Create a callback page to handle the OAuth redirect. Works in any framework.
+                                </p>
+                                <CodeBlock
+                                    code={`// Next.js, React, or any framework
+import { useShooAuth } from "@shoojs/react";
+
+export default function Callback() {
+  const { handleCallback } = useShooAuth();
+
+  useEffect(() => {
+    handleCallback({ redirectAfter: false })
+      .then((token) => {
+        if (token?.id_token) {
+          // Token contains: pairwise_sub, email, name (if requested)
+          window.location.href = "/dashboard";
+        }
+      });
+  }, []);
+
+  return <div>Signing in...</div>;
+}`}
+                                    language="typescript"
+                                    filename="callback.tsx"
+                                />
 
                                 <h2 id="useshooauth">useShooAuth Hook</h2>
                                 <p>
                                     The primary hook for interacting with Shoo Auth. Provides authentication
                                     state, sign-in methods, and user identity information.
                                 </p>
-                                <pre><code>{`interface UseShooAuthReturn {
-  identity: { userId: string; token: string } | null;
-  claims: JWTClaims | null;
+                                <CodeBlock
+                                    code={`interface UseShooAuthReturn {
+  identity: ShooIdentity;           // { userId: string | null; token?: string; expiresIn?: number; }
+  claims: IdentityClaims | null;    // Decoded JWT claims (pairwise_sub, email, name, etc.)
   loading: boolean;
-  signIn: (options?: SignInOptions) => Promise<void>;
-  signOut: () => Promise<void>;
+  sessionState: "unknown" | "active" | "login_required";
+  error: string | null;
+  // Actions
+  signIn: (options?: StartSignInOptions) => Promise<void>;
+  handleCallback: (options?: HandleCallbackOptions) => Promise<TokenResponse | null>;
+  checkSession: () => Promise<SessionCheckResult>;
+  refreshIdentity: () => void;
   clearIdentity: () => void;
-}`}</code></pre>
+  // Client reference
+  authClient: ShooAuthClient | null;
+}`}
+                                    language="typescript"
+                                />
+
+                                <h2 id="config">Configuration Options</h2>
+                                <CodeBlock
+                                    code={`useShooAuth({
+  shooBaseUrl: "https://shoo.dev",      // Shoo OAuth server
+  callbackPath: "/auth/callback",       // OAuth callback route
+  autoHandleCallback: true,             // Auto-process callback params
+  autoSessionMonitor: true,             // Enable background session checks
+  sessionMonitorIntervalMs: 60000,      // Check interval (default: 60s)
+});`}
+                                    language="typescript"
+                                />
 
                                 <h2 id="signin">signIn</h2>
                                 <p>
-                                    Initiates the authentication flow. Can be used for email/password,
-                                    OAuth, or custom authentication methods.
+                                    Initiates the OAuth authentication flow by redirecting to Shoo.
+                                    After successful authentication, the user is redirected back to your callback path.
                                 </p>
-                                <pre><code>{`interface SignInOptions {
-  email?: string;
-  password?: string;
-  provider?: "google" | "github" | "custom";
-  requestPii?: boolean; // Request personal info (name, email)
-  totpCode?: string; // For 2FA verification
-}`}</code></pre>
+                                <CodeBlock
+                                    code={`interface StartSignInOptions {
+  requestPii?: boolean;      // Request personal info (name, email)
+  returnTo?: string;        // Path to redirect after sign-in
+  redirectUri?: string;     // Override the OAuth redirect URI
+  clientId?: string;        // Override the OAuth client ID
+  shooBaseUrl?: string;     // Override the Shoo server URL
+}`}
+                                    language="typescript"
+                                />
 
-                                <h2 id="signout">signOut</h2>
+                                <h2 id="callback-handler">OAuth Callback Handler</h2>
                                 <p>
-                                    Clears the current session and invalidates tokens on the server.
-                                    This will trigger a full re-authentication on the next sign-in attempt.
+                                    Handle the OAuth callback after the user returns from Shoo.
+                                    Exchange the authorization code for tokens and establish the session.
                                 </p>
-                                <pre><code>{`const { signOut } = useShooAuth();
-
-// Sign out and clear session
-await signOut();
-
-// Or clear locally without server call
-const { clearIdentity } = useShooAuth();
-clearIdentity();`}</code></pre>
-
-                                <h2 id="verifytoken">verifyToken</h2>
                                 <p>
-                                    Server-side token verification for API routes and middleware.
-                                    Validates JWT signatures and checks expiration.
+                                    The <code>handleCallback</code> method is available from the React hook. For direct
+                                    client usage, use <code>finishSignIn</code> from the auth client.
                                 </p>
-                                <pre><code>{`import { verifyToken } from "@shoo/auth/server";
+                                <CodeBlock
+                                    code={`"use client";
+
+import { useEffect } from "react";
+import { useShooAuth } from "@shoojs/react";
+
+export default function AuthCallback() {
+  const { handleCallback } = useShooAuth();
+
+  useEffect(() => {
+    handleCallback({ redirectAfter: false })
+      .then((token) => {
+        if (token) {
+          // Verify token with your backend
+          window.location.href = "/dashboard";
+        }
+      });
+  }, [handleCallback]);
+
+  return <div>Completing sign-in...</div>;
+}`}
+                                    language="typescript"
+                                    filename="auth/callback/page.tsx"
+                                />
+
+                                <h2 id="signout">Clear Identity / Sign Out</h2>
+                                <p>
+                                    Clear the local session. Shoo is stateless — there&apos;s no server-side session to invalidate.
+                                </p>
+                                <CodeBlock
+                                    code={`const { clearIdentity } = useShooAuth();
+
+// Clear local session
+clearIdentity();`}
+                                    language="typescript"
+                                />
+
+                                <h2 id="verifytoken">Token Verification</h2>
+                                <p>
+                                    Verify Shoo ID tokens server-side using JWKS. The tokens are JWTs signed
+                                    by Shoo&apos;s keys and contain the user&apos;s pairwise_sub claim (unique per app).
+                                </p>
+                                <CodeBlock
+                                    code={`import { createRemoteJWKSet, jwtVerify } from "jose";
+
+const jwks = createRemoteJWKSet(
+  new URL("/.well-known/jwks.json", "https://shoo.dev")
+);
 
 // In your API route
-export async function GET(request: Request) {
-  const token = extractToken(request);
-  const payload = await verifyToken(token);
+export async function POST(request: Request) {
+  const { idToken } = await request.json();
   
-  if (!payload) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const { payload } = await jwtVerify(idToken, jwks, {
+    issuer: "https://shoo.dev",
+    audience: "origin:https://yourdomain.com",
+  });
   
-  return Response.json({ userId: payload.sub });
-}`}</code></pre>
+  // payload.pairwise_sub contains the unique user ID
+  return Response.json({ userId: payload.pairwise_sub });
+}`}
+                                    language="typescript"
+                                    filename="api/verify/route.ts"
+                                />
 
-                                <h2 id="env">Environment Variables</h2>
+                                <h2 id="env">Environment Setup</h2>
                                 <p>
-                                    Configure Shoo Auth using environment variables. These can be set
-                                    in your deployment platform or local development environment.
+                                    No environment variables required for basic usage. Just point your redirect URI to shoo.dev.
+                                    For the React SDK, you can optionally configure the base URL.
                                 </p>
-                                <pre><code>{`# Required
-SHOO_API_KEY=sk_live_...
-SHOO_PROJECT_ID=proj_...
-
-# Optional
-SHOO_SESSION_DURATION=86400
-SHOO_ENABLE_2FA=true
-SHOO_ALLOWED_ORIGINS=https://yourdomain.com`}</code></pre>
-
-                                <h2 id="webhooks">Webhooks</h2>
-                                <p>
-                                    Receive real-time events for authentication actions. Set up webhooks
-                                    in your dashboard to sync user data or trigger custom workflows.
-                                </p>
-                                <pre><code>{`// Webhook payload structure
-{
-  "event": "user.sign_in",
-  "timestamp": "2025-01-15T10:30:00Z",
-  "data": {
-    "userId": "usr_...",
-    "email": "user@example.com",
-    "method": "password"
-  }
-}`}</code></pre>
+                                <CodeBlock
+                                    code={`// Optional: Configure SDK (defaults shown)
+useShooAuth({
+  shooBaseUrl: "https://shoo.dev",
+  callbackPath: "/auth/callback",
+});`}
+                                    language="typescript"
+                                />
 
                                 <h2 id="security">Security</h2>
                                 <p>
-                                    Shoo Auth implements industry-standard security practices:
+                                    Shoo implements OAuth 2.0 with PKCE and OpenID Connect:
                                 </p>
                                 <ul>
-                                    <li>Argon2id password hashing with configurable memory and time costs</li>
-                                    <li>HTTP-only, SameSite cookies for session tokens</li>
-                                    <li>Automatic rate limiting on authentication endpoints</li>
-                                    <li>Brute force protection with progressive delays</li>
-                                    <li>JWT tokens with short expiration and automatic refresh</li>
-                                    <li>Audit logging for all authentication events</li>
+                                    <li>Pairwise user IDs (privacy-preserving, different per app)</li>
+                                    <li>JWKS-based JWT verification with RS256 signatures</li>
+                                    <li>Origin-bound tokens (audience validation prevents cross-site replay)</li>
+                                    <li>PKCE flow for OAuth authorization code exchange</li>
+                                    <li>30-day token expiration</li>
+                                    <li>No backend required — Shoo handles all OAuth server-side</li>
                                 </ul>
                             </div>
                         </div>
@@ -386,7 +441,7 @@ SHOO_ALLOWED_ORIGINS=https://yourdomain.com`}</code></pre>
                                 <span className="font-serif text-lg">Shoo</span>
                             </div>
                             <p className="text-sm text-stone-500">
-                                © 2025 Shoo Auth. All rights reserved.
+                                © 2026 Shoo Auth. All rights reserved.
                             </p>
                         </div>
                     </div>

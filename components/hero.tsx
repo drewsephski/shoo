@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useShooAuth } from "@/lib/shoo-convex";
 import Head from "next/head";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 type AuthState = "idle" | "typing" | "submitting" | "verifying" | "success" | "dashboard";
 
@@ -13,7 +16,9 @@ export default function Hero() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [activeStep, setActiveStep] = useState(0);
-  const { signIn } = useShooAuth();
+  const { signIn, identity, loading } = useShooAuth();
+
+  const isAuthenticated = !loading && !!identity?.userId;
 
   // Auto-demo animation - premium timing
   useEffect(() => {
@@ -107,40 +112,53 @@ export default function Hero() {
         {/* Hero Section */}
         <section className="relative flex flex-col items-center justify-center px-4 pb-4 pt-28">
                         <div
-                            className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/70 px-4 py-1.5 text-[13px] text-stone-600 shadow-sm backdrop-blur-sm"
+                            className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/70 px-4 py-1.5 text-[13px] text-amber-700 shadow-sm backdrop-blur-sm"
                             style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both" }}
                         >
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                            Version 1.1 — Now available
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                            Early WIP — Use at your own risk
                         </div>
 
                         <h1
                             className="relative z-10 max-w-4xl text-center text-[#1C1917]"
                             style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both" }}
                         >
-                            <span className="block font-serif text-[clamp(48px,8vw,88px)] leading-[1.05] tracking-[-0.02em]">Secure sign‑in.</span>
-                            <span className="block font-serif text-[clamp(48px,8vw,88px)] leading-[1.05] tracking-[-0.02em] text-stone-400">Fast and flexible.</span>
+                            <span className="block font-serif text-[clamp(48px,8vw,88px)] leading-[1.05] tracking-[-0.02em]">Auth infrastructure.</span>
+                            <span className="block font-serif text-[clamp(48px,8vw,88px)] leading-[1.05] tracking-[-0.02em] text-stone-400">Without the headache.</span>
                         </h1>
                         <p
                             className="relative z-10 mt-4 max-w-xl px-4 text-center text-[15px] leading-relaxed text-stone-600 sm:mt-6 sm:text-[18px]"
                             style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both" }}
                         >
-                            Shoo is a modern authentication platform that lets you add secure sign‑in, session management, and user identities to your app in minutes
+                            Hosted authentication built on Shoo. Sessions, audit logs, and team management — the production features you actually need.
                         </p>
                         <div
                             className="relative z-20 mt-8 flex flex-col items-center"
                             style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both" }}
                         >
-                            <button
-                                onClick={() => signIn({ requestPii: true })}
-                                className="flex items-center gap-2.5 rounded-2xl px-8 py-4 text-[16px] font-semibold text-white transition-all duration-200 hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
-                                style={{
-                                    background: "linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)",
-                                    boxShadow: "0 1px 0 #1d4ed8, 0 4px 8px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
-                                }}
-                            >
-                                Get Started
-                            </button>
+                            {isAuthenticated ? (
+                                <Button
+                                    asChild
+                                    variant="blue-cta"
+                                    effect="expandIcon"
+                                    icon={ArrowRight}
+                                    iconPlacement="right"
+                                    className="rounded-2xl px-8 py-4 text-[16px] font-semibold"
+                                >
+                                    <Link href="/dashboard">Dashboard</Link>
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={() => signIn({ requestPii: true })}
+                                    variant="blue-cta"
+                                    effect="expandIcon"
+                                    icon={ArrowRight}
+                                    iconPlacement="right"
+                                    className="rounded-2xl px-8 py-4 text-[16px] font-semibold"
+                                >
+                                    Get Started
+                                </Button>
+                            )}
                             <div className="mt-4">
                             </div>
                         </div>
@@ -187,10 +205,10 @@ export default function Hero() {
                                 {/* Clean Header */}
                                 <div className="mb-8 text-center">
                                     <h3 className="font-serif text-2xl font-medium tracking-tight text-stone-900">
-                                        Secure authentication
+                                        OAuth in 2 lines
                                     </h3>
                                     <p className="mt-2 text-sm text-stone-500">
-                                        See how Shoo handles sign-in, 2FA, and session management
+                                        Add the script. Add a login link. Done.
                                     </p>
                                 </div>
 
@@ -224,12 +242,12 @@ export default function Hero() {
                                                 }}
                                             />
                                             <span className="text-xs font-medium text-stone-600">
-                                                {authState === 'idle' && 'Waiting to start...'}
-                                                {authState === 'typing' && 'Entering credentials...'}
-                                                {authState === 'submitting' && 'Verifying credentials...'}
-                                                {authState === 'verifying' && '2FA verification required'}
+                                                {authState === 'idle' && 'Ready to authenticate...'}
+                                                {authState === 'typing' && 'Redirecting to shoo.dev...'}
+                                                {authState === 'submitting' && 'Completing OAuth flow...'}
+                                                {authState === 'verifying' && 'Verifying identity token...'}
                                                 {authState === 'success' && 'Authentication successful'}
-                                                {authState === 'dashboard' && 'Dashboard active'}
+                                                {authState === 'dashboard' && 'Session active'}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
@@ -413,19 +431,19 @@ export default function Hero() {
                                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                             </svg>
-                                            Encrypted
+                                            PKCE Flow
                                         </span>
                                         <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-400">
                                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                                             </svg>
-                                            Verified
+                                            RS256 Signed
                                         </span>
                                         <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-400">
                                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.356.108-.699.312-.997l9-13.5A.75.75 0 0112 4.5h.001Z" />
                                             </svg>
-                                            2FA Active
+                                            Pairwise IDs
                                         </span>
                                     </div>
                                 </div>
@@ -437,133 +455,204 @@ export default function Hero() {
                                 style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both" }}
                             >
                                 <p className="text-xs text-stone-400">
-                                    This demo loops automatically to show the full authentication flow
+                                    Simulated OAuth flow — real implementation is just 2 lines of code
                                 </p>
                             </div>
                         </div>
                     </section>
 
-                    {/* Features Section - Refined Grid */}
-                    <section className="relative px-4 py-20 sm:px-6 sm:py-28">
-                        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-stone-200 to-transparent"></div>
-                            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-stone-200 to-transparent"></div>
+                    {/* Features Section - Editorial Flow */}
+                    <section id="features" className="relative px-6 py-24 sm:px-12 sm:py-32 lg:px-16">
+                        <div className="mx-auto max-w-7xl">
+                            {/* Section opener - tight, intentional */}
+                            <div className="mb-20 sm:mb-28 lg:mb-36" style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both" }}>
+                                <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400 mb-4">Capabilities</p>
+                                <h2 className="font-serif text-[clamp(40px,6vw,72px)] leading-[1.05] tracking-[-0.03em] text-stone-900 max-w-4xl">
+                                    Everything you need, nothing you don&apos;t
+                                </h2>
+                            </div>
+
+                            {/* Feature 1 - OAuth Provider */}
+                            <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 mb-24 sm:mb-32" style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both" }}>
+                                <div className="lg:col-span-5 lg:col-start-1">
+                                    <div className="sticky top-32">
+                                        <span className="text-sm font-medium text-blue-600 mb-3 block">01</span>
+                                        <h3 className="font-serif text-3xl sm:text-4xl text-stone-900 mb-4 leading-tight">
+                                            OAuth Provider
+                                        </h3>
+                                        <p className="text-base leading-relaxed text-stone-500 max-w-md">
+                                            Shoo is the auth provider. No need for Auth0, Clerk, or Google. Just point your redirect URI to shoo.dev and get verified user identities via JWT.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-6 lg:col-start-7">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4 py-4 border-t border-stone-200">
+                                            <svg className="h-5 w-5 text-stone-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span className="text-sm text-stone-600">No signup or API keys required</span>
+                                        </div>
+                                        <div className="flex items-center gap-4 py-4 border-t border-stone-200">
+                                            <svg className="h-5 w-5 text-stone-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                            </svg>
+                                            <span className="text-sm text-stone-600">PKCE flow with S256 challenge</span>
+                                        </div>
+                                        <div className="flex items-center gap-4 py-4 border-t border-b border-stone-200">
+                                            <svg className="h-5 w-5 text-stone-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span className="text-sm text-stone-600">30-day token expiration</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Feature 2 & 3 - Side by side */}
+                            <div className="grid sm:grid-cols-2 gap-12 lg:gap-24 mb-24 sm:mb-32">
+                                <div style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both" }}>
+                                    <span className="text-sm font-medium text-violet-600 mb-3 block">02</span>
+                                    <h3 className="font-serif text-2xl text-stone-900 mb-3">
+                                        Session Management
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-stone-500">
+                                        Automatic token storage in localStorage with background session monitoring. Auto-refresh and multi-device session tracking built-in.
+                                    </p>
+                                </div>
+                                <div style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}>
+                                    <span className="text-sm font-medium text-amber-600 mb-3 block">03</span>
+                                    <h3 className="font-serif text-2xl text-stone-900 mb-3">
+                                        Pairwise IDs
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-stone-500">
+                                        Privacy-preserving user identifiers. Each app gets a unique user ID so users can&apos;t be tracked across different applications.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Feature 4 - JWT / JWKS - Wide, offset */}
+                            <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 mb-24 sm:mb-32" style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both" }}>
+                                <div className="lg:col-span-4 lg:col-start-2">
+                                    <span className="text-sm font-medium text-emerald-600 mb-3 block">04</span>
+                                    <h3 className="font-serif text-3xl sm:text-4xl text-stone-900 mb-4 leading-tight">
+                                        JWT Verification
+                                    </h3>
+                                    <p className="text-base leading-relaxed text-stone-500">
+                                        RS256-signed JWTs with JWKS endpoint. Verify tokens server-side with standard libraries like Jose.
+                                    </p>
+                                </div>
+                                <div className="lg:col-span-5 lg:col-start-8 flex items-center">
+                                    <div className="font-mono text-xs text-stone-400 bg-stone-100 px-4 py-3 rounded-lg">
+                                        https://shoo.dev/.well-known/jwks.json
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Feature 5 & 6 - Compact row */}
+                            <div className="grid sm:grid-cols-3 gap-8 lg:gap-12 mb-20">
+                                <div style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both" }}>
+                                    <span className="text-sm font-medium text-rose-600 mb-2 block">05</span>
+                                    <h3 className="font-serif text-xl text-stone-900 mb-2">
+                                        No Passwords
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-stone-500">
+                                        Users authenticate via Shoo. No password hashes to store, no credential breaches.
+                                    </p>
+                                </div>
+                                <div className="sm:col-span-2 sm:pl-12 sm:border-l border-stone-200" style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both" }}>
+                                    <span className="text-sm font-medium text-stone-600 mb-2 block">06</span>
+                                    <h3 className="font-serif text-xl text-stone-900 mb-2">
+                                        Framework Agnostic
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-stone-500 max-w-md">
+                                        Works with any framework. React SDK available, or use the CDN script with vanilla JS, Vue, Svelte, or anything else.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Closing statement */}
+                            <div className="pt-16 border-t border-stone-200" style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both" }}>
+                                <p className="text-sm text-stone-400">
+                                    All features included. No complex setup required.
+                                </p>
+                            </div>
                         </div>
+                    </section>
 
-                        {/* Section Header */}
-                        <div className="mx-auto max-w-2xl text-center mb-16 sm:mb-20">
-                            <h2 
-                                className="font-serif text-[clamp(32px,5vw,48px)] leading-[1.1] tracking-[-0.02em] text-stone-900"
-                                style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both" }}
-                            >
-                                Everything you need
-                            </h2>
-                            <p 
-                                className="mt-4 text-[16px] leading-relaxed text-stone-500 sm:text-[18px]"
-                                style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both" }}
-                            >
-                                Built-in authentication flows that just work—no complex setup, no maintenance headaches
-                            </p>
-                        </div>
-
-                        {/* Features Grid */}
-                        <div className="mx-auto max-w-6xl">
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {/* Feature 1 - Magic Links */}
-                                <div 
-                                    className="group relative rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50"
-                                    style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both" }}
-                                >
-                                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-transform duration-300 group-hover:scale-110">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                                        </svg>
+                    {/* Tenant Dashboard Feature Section */}
+                    <section className="relative px-4 py-20 sm:px-6 sm:py-28 bg-stone-50">
+                        <div className="mx-auto max-w-5xl">
+                            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+                                <div>
+                                    <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600 mb-4">
+                                        New: Shoo for Developers
                                     </div>
-                                    <h3 className="text-[15px] font-semibold text-stone-900">Magic Links</h3>
-                                    <p className="mt-2 text-[14px] leading-relaxed text-stone-500">
-                                        Passwordless sign-in with secure email links. No passwords to forget or compromise.
+                                    <h2 className="font-serif text-[32px] leading-[1.2] tracking-[-0.02em] text-stone-900 sm:text-[36px]">
+                                        Add auth to your app in minutes
+                                    </h2>
+                                    <p className="mt-4 text-[16px] leading-relaxed text-stone-600">
+                                        Launch your own hosted authentication service. Create apps, get API keys, and let users sign in with Shoo — complete with session management, device tracking, and billing.
                                     </p>
+                                    <div className="mt-6 flex flex-wrap gap-3">
+                                        {isAuthenticated ? (
+                                            <Button
+                                                asChild
+                                                variant="blue-cta"
+                                                effect="expandIcon"
+                                                icon={ArrowRight}
+                                                iconPlacement="right"
+                                                className="rounded-xl px-6 py-3 text-[14px] font-semibold"
+                                            >
+                                                <Link href="/admin">admin</Link>
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={() => signIn({ requestPii: true })}
+                                                variant="blue-cta"
+                                                effect="expandIcon"
+                                                icon={ArrowRight}
+                                                iconPlacement="right"
+                                                className="rounded-xl px-6 py-3 text-[14px] font-semibold"
+                                            >
+                                                Create Your First App
+                                            </Button>
+                                        )}
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            className="rounded-xl border-stone-300 px-6 py-3 text-[14px] font-medium"
+                                        >
+                                            <Link href="/pricing">View Pricing</Link>
+                                        </Button>
+                                    </div>
                                 </div>
-
-                                {/* Feature 2 - OAuth */}
-                                <div 
-                                    className="group relative rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50"
-                                    style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}
-                                >
-                                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform duration-300 group-hover:scale-110">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v.003A9.338 9.338 0 016.678 15m9.441-4.81a4.125 4.125 0 00-7.533 2.493M15 10.19v.003a9.338 9.338 0 01-9.441 4.81m9.441-4.81a9.338 9.338 0 00-9.441-4.81m0 0a9.338 9.338 0 00-4.121.952M6.678 15A9.338 9.338 0 0115 10.19m0 0v-.003" />
-                                        </svg>
+                                <div className="relative rounded-2xl border border-stone-200 bg-white p-6 shadow-lg">
+                                    <div className="flex items-center gap-2 border-b border-stone-100 pb-4">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                            </svg>
+                                        </div>
+                                        <span className="font-medium text-stone-900">Your Apps</span>
                                     </div>
-                                    <h3 className="text-[15px] font-semibold text-stone-900">OAuth Providers</h3>
-                                    <p className="mt-2 text-[14px] leading-relaxed text-stone-500">
-                                        One-click sign-in with Google, GitHub, and more. Your users already have accounts.
-                                    </p>
-                                </div>
-
-                                {/* Feature 3 - Sessions */}
-                                <div 
-                                    className="group relative rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50"
-                                    style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both" }}
-                                >
-                                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600 transition-transform duration-300 group-hover:scale-110">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.356.108-.699.312-.997l9-13.5A.75.75 0 0112 4.5h.001Z" />
-                                        </svg>
+                                    <div className="mt-4 space-y-3">
+                                        {[
+                                            { name: "Acme App", users: 142, plan: "Pro" },
+                                            { name: "Side Project", users: 23, plan: "Free" },
+                                            { name: "Client Dashboard", users: 89, plan: "Pro" },
+                                        ].map((app, i) => (
+                                            <div key={i} className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 px-4 py-3">
+                                                <div>
+                                                    <p className="font-medium text-stone-900">{app.name}</p>
+                                                    <p className="text-xs text-stone-500">{app.users} users</p>
+                                                </div>
+                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${app.plan === "Pro" ? "bg-blue-50 text-blue-600" : "bg-stone-200 text-stone-600"}`}>
+                                                    {app.plan}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <h3 className="text-[15px] font-semibold text-stone-900">Session Management</h3>
-                                    <p className="mt-2 text-[14px] leading-relaxed text-stone-500">
-                                        Automatic session handling with secure tokens, refresh logic, and device tracking.
-                                    </p>
-                                </div>
-
-                                {/* Feature 4 - 2FA */}
-                                <div 
-                                    className="group relative rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50"
-                                    style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both" }}
-                                >
-                                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform duration-300 group-hover:scale-110">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.052 3.893 10.151 9 11.251 5.107-1.1 9-6.2 9-11.25 0-2.245-.532-4.346-1.596-6.104M15 2.25a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-[15px] font-semibold text-stone-900">Two-Factor Auth</h3>
-                                    <p className="mt-2 text-[14px] leading-relaxed text-stone-500">
-                                        Built-in TOTP and SMS 2FA support. Add an extra layer of security in one line.
-                                    </p>
-                                </div>
-
-                                {/* Feature 5 - User Management */}
-                                <div 
-                                    className="group relative rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50"
-                                    style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both" }}
-                                >
-                                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform duration-300 group-hover:scale-110">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v.003A9.338 9.338 0 016.678 15m0 0a9.338 9.338 0 019.441-4.81m-9.441 4.81a9.338 9.338 0 019.441-4.81M6.678 15a9.338 9.338 0 019.441-4.81M15 10.19v.003a9.338 9.338 0 01-9.441 4.81m9.441-4.81a9.338 9.338 0 00-9.441-4.81M6.678 15a9.338 9.338 0 01-2.184-.503 3.375 3.375 0 01-1.612-1.612C2.878 12.266 2.878 11.734 2.878 11.734s0-.532.586-1.151a3.375 3.375 0 011.612-1.612c.618-.586 1.151-.586 1.151-.586" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-[15px] font-semibold text-stone-900">User Management</h3>
-                                    <p className="mt-2 text-[14px] leading-relaxed text-stone-500">
-                                        Complete user profiles, metadata, and admin controls. Know your users.
-                                    </p>
-                                </div>
-
-                                {/* Feature 6 - Convex Native */}
-                                <div 
-                                    className="group relative rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50"
-                                    style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both" }}
-                                >
-                                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-700 transition-transform duration-300 group-hover:scale-110">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-[15px] font-semibold text-stone-900">Convex Native</h3>
-                                    <p className="mt-2 text-[14px] leading-relaxed text-stone-500">
-                                        Deep integration with Convex. Real-time auth state, automatic sync, type-safe APIs.
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -582,34 +671,66 @@ export default function Hero() {
                                 className="mx-auto mt-4 max-w-lg text-[16px] leading-relaxed text-stone-500 sm:text-[18px]"
                                 style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both" }}
                             >
-                                Join thousands of developers who ship faster with Shoo Auth
+                                Free, open-source OAuth provider. No credit card required.
                             </p>
                             <div 
                                 className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
                                 style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}
                             >
-                                <button
-                                    onClick={() => signIn({ requestPii: true })}
-                                    className="flex items-center gap-2.5 rounded-2xl px-8 py-4 text-[16px] font-semibold text-white transition-all duration-200 hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
-                                    style={{
-                                        background: "linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)",
-                                        boxShadow: "0 1px 0 #1d4ed8, 0 4px 8px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
-                                    }}
+                                {isAuthenticated ? (
+                                    <Button
+                                        asChild
+                                        variant="blue-cta"
+                                        effect="expandIcon"
+                                        icon={ArrowRight}
+                                        iconPlacement="right"
+                                        className="rounded-2xl px-8 py-4 text-[16px] font-semibold"
+                                    >
+                                        <Link href="/admin">admin</Link>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={() => signIn({ requestPii: true })}
+                                        variant="blue-cta"
+                                        effect="expandIcon"
+                                        icon={ArrowRight}
+                                        iconPlacement="right"
+                                        className="rounded-2xl px-8 py-4 text-[16px] font-semibold"
+                                    >
+                                        Get Started Free
+                                    </Button>
+                                )}
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="h-11 rounded-2xl border-stone-200 px-8 text-[16px] font-medium"
                                 >
-                                    Get Started Free
-                                </button>
-                                <a 
-                                    href="/docs" 
-                                    className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-white px-8 py-4 text-[16px] font-medium text-stone-700 transition-all duration-200 hover:border-stone-300 hover:bg-stone-50"
-                                >
-                                    Read Documentation
-                                </a>
+                                    <a href="/docs">Documentation</a>
+                                </Button>
                             </div>
                             <p 
                                 className="mt-6 text-[13px] text-stone-400"
                                 style={{ animation: "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both" }}
                             >
-                                Free for personal projects. No credit card required.
+                                Open source. Self-hostable. No vendor lock-in.
+                            </p>
+                        </div>
+                    </section>
+
+                    {/* Contact Section */}
+                    <section className="relative px-4 py-12 sm:px-6 sm:py-16 border-t border-stone-200">
+                        <div className="mx-auto max-w-3xl text-center">
+                            <p 
+                                className="text-[13px] text-stone-400"
+                                style={{ animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both" }}
+                            >
+                                Questions? Feedback?{" "}
+                                <a 
+                                    href="mailto:drewsepeczi@gmail.com"
+                                    className="text-stone-600 underline decoration-stone-300 underline-offset-4 transition-colors hover:text-stone-900 hover:decoration-stone-500"
+                                >
+                                    drewsepeczi@gmail.com
+                                </a>
                             </p>
                         </div>
                     </section>

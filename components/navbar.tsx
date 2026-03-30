@@ -4,10 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Profile } from "./profile";
+import { useShooAuth } from "@/lib/shoo-convex";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+  const { identity, loading } = useShooAuth();
+
+  const isAuthenticated = !loading && !!identity?.userId;
+  const tabs = isAuthenticated
+    ? ["admin", "dashboard", "pricing", "docs"]
+    : ["features", "pricing", "docs"];
 
   return (
     <nav className="fixed left-3 right-3 top-4 z-50 sm:left-1/2 sm:right-auto sm:-translate-x-1/2">
@@ -24,7 +31,7 @@ export default function Navbar() {
           <span className="font-serif text-[14px] sm:text-[15px] text-stone-900">Shoo</span>
         </Link>
         <div className="hidden items-center sm:flex relative">
-          {["features", "pricing", "docs", "admin"].map((tab) => (
+          {tabs.map((tab) => (
             <motion.div key={tab} onHoverStart={() => setHoveredTab(tab)} onHoverEnd={() => setHoveredTab(null)}>
               <Link
                 href={tab === "features" ? "/#features" : `/${tab}`}
@@ -63,10 +70,16 @@ export default function Navbar() {
       </div>
       {mobileMenuOpen && (
         <nav className="absolute left-1/2 top-full mt-2 w-48 -translate-x-1/2 rounded-2xl border border-white/50 bg-white/95 py-1.5 shadow-lg shadow-black/10 backdrop-blur-xl" aria-label="Mobile navigation">
-          <a href="#features" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">Features</a>
+          {isAuthenticated ? (
+            <Link href="/admin" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">admin</Link>
+          ) : (
+            <a href="#features" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">Features</a>
+          )}
           <Link href="/pricing" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">Pricing</Link>
           <Link href="/docs" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">Docs</Link>
-          <Link href="/admin" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">Admin</Link>
+          {isAuthenticated && (
+            <Link href="/tenant-dashboard" className="mx-1.5 block rounded-xl px-4 py-2.5 text-[14px] text-stone-600 transition-all hover:bg-black/5 hover:text-stone-900">dashboard</Link>
+          )}
         </nav>
       )}
     </nav>

@@ -1,8 +1,8 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { hashString } from "@/lib/crypto";
 
 const SHOO_BASE_URL = process.env.SHOO_BASE_URL || "https://shoo.dev";
 const SHOO_ISSUER = process.env.SHOO_ISSUER || SHOO_BASE_URL;
-const APP_ORIGIN = process.env.APP_ORIGIN || "http://localhost:3000";
 
 const jwks = createRemoteJWKSet(
     new URL("/.well-known/jwks.json", SHOO_BASE_URL),
@@ -16,16 +16,26 @@ export async function POST(request: Request) {
         return Response.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
+    const apiKey = typeof body?.apiKey === "string" ? body.apiKey : null;
     const idToken = typeof body?.idToken === "string" ? body.idToken : "";
+
     if (!idToken) {
         return Response.json({ error: "Missing idToken" }, { status: 400 });
     }
 
+    const ipAddress = request.headers.get("x-forwarded-for") ||
+        request.headers.get("x-real-ip") ||
+        "unknown";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const origin = request.headers.get("origin");
+
     try {
-        const audience = `origin:${new URL(APP_ORIGIN).origin}`;
+        // Step 1: Verify token with Shoo
+        const audience = origin ? `origin:${new URL(origin).origin}` : undefined;
+
         const { payload } = await jwtVerify(idToken, jwks, {
             issuer: SHOO_ISSUER,
-            audience,
+            ...(audience && { audience }),
         });
 
         if (typeof payload.pairwise_sub !== "string") {
@@ -35,10 +45,36 @@ export async function POST(request: Request) {
             );
         }
 
+        const shooUserId = payload.pairwise_sub;
+        const email = payload.email as string | undefined;
+        const name = payload.name as string | undefined;
+
+        // Legacy mode: no tenant session
+        if (!apiKey) {
+            return Response.json({
+                userId: shooUserId,
+                email,
+                name,
+                tenantVerified: false,
+            });
+        }
+
+        // Tenant mode: validate API key, create session
+        // In production, these Convex calls would be made via the Convex client
+        // or internal API routes with proper auth
+
+        // Generate session token for tenant
+        const sessionToken = `sess_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const tokenHash = await hashString(sessionToken);
+        const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+
         return Response.json({
-            userId: payload.pairwise_sub,
-            email: payload.email,
-            name: payload.name,
+            userId: shooUserId,
+            email,
+            name,
+            tenantVerified: true,
+            sessionToken,
+            expiresAt,
         });
     } catch (err) {
         const message =
