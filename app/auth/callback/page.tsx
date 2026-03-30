@@ -42,9 +42,6 @@ function CallbackHandler() {
     const [error, setError] = useState<string | null>(null);
     const getOrCreateUser = useMutation(api.users.getOrCreateUser);
     const createSession = useMutation(api.sessions.createSession);
-    const checkRateLimit = useMutation(api.rateLimit.checkRateLimit);
-    const incrementRateLimit = useMutation(api.rateLimit.incrementRateLimit);
-    const logAuthEvent = useMutation(api.audit.logAuthEvent);
 
     useEffect(() => {
         async function processCallback() {
@@ -152,7 +149,7 @@ function CallbackHandler() {
         }
 
         processCallback();
-    }, [searchParams, router, getOrCreateUser, createSession, checkRateLimit, incrementRateLimit, logAuthEvent]);
+    }, [searchParams, router, getOrCreateUser, createSession]);
 
     if (error) {
         return (
