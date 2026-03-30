@@ -124,6 +124,9 @@ export default function AdminDashboard() {
     const [showResultDialog, setShowResultDialog] = useState(false);
     const [cleanupResult, setCleanupResult] = useState<{ deletedCount: number } | null>(null);
 
+    // Loading state
+    const isLoading = users === undefined || allSessions === undefined;
+
     const handleRevokeSession = async (sessionId: string) => {
         try {
             await revokeSession({ sessionId: sessionId as any });
@@ -200,12 +203,14 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v.003A9.338 9.338 0 016.678 15m0 0a9.338 9.338 0 019.441-4.81m-9.441 4.81a9.338 9.338 0 019.441-4.81M6.678 15a9.338 9.338 0 0115-4.81M15 10.19v.003a9.338 9.338 0 01-9.441 4.81m9.441-4.81a9.338 9.338 0 00-9.441-4.81M6.678 15a9.338 9.338 0 01-2.184-.503 3.375 3.375 0 01-1.612-1.612C2.878 12.266 2.878 11.734 2.878 11.734s0-.532.586-1.151a3.375 3.375 0 011.612-1.612c.618-.586 1.151-.586 1.151-.586" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v.003A9.338 9.338 0 016.678 15m0 0a9.338 9.338 0 019.441-4.81m-9.441 4.81a9.338 9.338 0 019.441-4.81M6.678 15a9.338 9.338 0 01-2.184-.503 3.375 3.375 0 01-1.612-1.612C2.878 12.266 2.878 11.734 2.878 11.734s0-.532.586-1.151a3.375 3.375 0 011.612-1.612c.618-.586 1.151-.586 1.151-.586" />
                                 </svg>
                             </div>
                             <div>
                                 <p className="text-sm text-stone-500">Total Users</p>
-                                <p className="text-2xl font-semibold text-stone-900">{users?.length || 0}</p>
+                                <p className="text-2xl font-semibold text-stone-900">
+                                    {isLoading ? "..." : users?.length || 0}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -219,7 +224,9 @@ export default function AdminDashboard() {
                             </div>
                             <div>
                                 <p className="text-sm text-stone-500">Active Sessions</p>
-                                <p className="text-2xl font-semibold text-stone-900">{allSessions?.length || 0}</p>
+                                <p className="text-2xl font-semibold text-stone-900">
+                                    {isLoading ? "..." : allSessions?.length || 0}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -234,7 +241,7 @@ export default function AdminDashboard() {
                             <div>
                                 <p className="text-sm text-stone-500">Avg Sessions/User</p>
                                 <p className="text-2xl font-semibold text-stone-900">
-                                    {users?.length ? Math.round((allSessions?.length || 0) / users.length * 10) / 10 : 0}
+                                    {isLoading ? "..." : users?.length ? Math.round((allSessions?.length || 0) / users.length * 10) / 10 : 0}
                                 </p>
                             </div>
                         </div>
