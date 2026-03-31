@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create Stripe Checkout Session
+        // Create Stripe Checkout Session for one-time payment
         const session = await stripe.checkout.sessions.create({
-            mode: "subscription",
+            mode: "payment",
             payment_method_types: ["card"],
             line_items: [
                 {
@@ -32,11 +32,6 @@ export async function POST(request: NextRequest) {
             customer_email: customerEmail,
             metadata: {
                 tenantId,
-            },
-            subscription_data: {
-                metadata: {
-                    tenantId,
-                },
             },
         });
 

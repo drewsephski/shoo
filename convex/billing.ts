@@ -3,43 +3,67 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Stripe Price IDs - replace with your actual IDs from Stripe Dashboard
-const STRIPE_PRICE_IDS = {
-    pro: "price_1TGhNQIv4Ez9jUN2CBmZMsFu", // $29/month
-    enterprise: null, // Contact sales - no self-serve price
-};
-
-// Plan configuration
+// Plan configuration — One-time template purchase model
+// All tiers include full production features (rate limiting, audit logs, device fingerprinting)
+// Price is one-time for template + updates access
 export const PLAN_LIMITS = {
     free: {
-        maxUsers: 100,
-        maxSessionsPerUser: 5,
-        price: 0,
-        priceId: null,
-        features: ["OAuth sign-in", "Session management", "Basic dashboard"],
-    },
-    pro: {
-        maxUsers: 1000,
-        maxSessionsPerUser: 10,
-        price: 2900, // $29 in cents
-        priceId: STRIPE_PRICE_IDS.pro,
-        features: ["Everything in Free", "Audit logs", "Rate limiting", "Priority support"],
-    },
-    enterprise: {
         maxUsers: -1, // unlimited
         maxSessionsPerUser: -1, // unlimited
-        price: null, // contact sales
-        priceId: null,
-        features: ["Everything in Pro", "Custom SSO", "SLA", "Dedicated support"],
+        price: 0,
+        stripePriceId: "", // No price for free plan
+        priceLabel: "Free",
+        description: "Self-hosted, community support",
+        features: [
+            "Full source code",
+            "OAuth + session management",
+            "Rate limiting",
+            "Audit logs",
+            "Device fingerprinting",
+            "Admin dashboard",
+            "Community Discord",
+        ],
+    },
+    pro: {
+        maxUsers: -1, // unlimited
+        maxSessionsPerUser: -1, // unlimited
+        price: 7900, // $79 one-time
+        stripePriceId: "price_1TGjyaIv4Ez9jUN2VrlrduFV", // $79 one-time
+        priceLabel: "$79 one-time",
+        description: "Template + 1 year of updates",
+        features: [
+            "Everything in Free",
+            "1 year of updates",
+            "Priority Discord support",
+            "Video setup guide",
+        ],
+    },
+    team: {
+        maxUsers: -1, // unlimited
+        maxSessionsPerUser: -1, // unlimited
+        price: 29900, // $299 one-time
+        stripePriceId: "price_1TGjyaIv4Ez9jUN22gRaLWyX", // $299 one-time
+        priceLabel: "$299 one-time",
+        description: "Full package + implementation help",
+        features: [
+            "Everything in Pro",
+            "Lifetime updates",
+            "1:1 code review call (30 min)",
+            "Email support (30 days)",
+            "Custom implementation guidance",
+        ],
     },
 };
+
+// Type for plan IDs
+type PlanId = keyof typeof PLAN_LIMITS;
 
 // Create Stripe checkout session for plan upgrade
 export const createCheckoutSession = mutation({
     args: {
         tenantId: v.id("tenants"),
         userId: v.string(),
-        plan: v.union(v.literal("pro"), v.literal("enterprise")),
+        plan: v.union(v.literal("pro"), v.literal("team")),
         successUrl: v.string(),
         cancelUrl: v.string(),
     },
@@ -48,16 +72,17 @@ export const createCheckoutSession = mutation({
         if (!tenant) throw new Error("Tenant not found");
         if (tenant.ownerId !== userId) throw new Error("Unauthorized");
 
-        const planConfig = PLAN_LIMITS[plan];
-        if (!planConfig.priceId) {
-            throw new Error("Enterprise plan requires contact sales");
+        const planConfig = PLAN_LIMITS[plan as PlanId];
+        if (!planConfig.price || planConfig.price === 0) {
+            throw new Error("Team plan checkout requires manual setup - contact sales");
         }
 
-        // Return checkout configuration for frontend to use with Stripe.js
+        // Return checkout configuration for frontend
         return {
-            priceId: planConfig.priceId,
+            plan,
+            priceId: planConfig.stripePriceId,
             tenantId: tenant._id,
-            customerEmail: tenant.ownerId, // Shoo userId as placeholder
+            customerEmail: tenant.ownerId,
             successUrl,
             cancelUrl,
         };
@@ -172,7 +197,7 @@ export const getPlanDetails = query({
 
         if (!member) return null;
 
-        const plan = tenant.plan;
+        const plan = tenant.plan as PlanId;
         const limits = PLAN_LIMITS[plan];
 
         return {
@@ -181,7 +206,10 @@ export const getPlanDetails = query({
                 maxUsers: limits.maxUsers,
                 maxSessionsPerUser: limits.maxSessionsPerUser,
             },
+            priceId: limits.stripePriceId,
             price: limits.price,
+            priceLabel: limits.priceLabel,
+            description: limits.description,
             features: limits.features,
             stripeSubscriptionId: tenant.stripeSubscriptionId,
         };
@@ -207,5 +235,31 @@ export const checkUserLimit = query({
             max: tenant.maxUsers,
             canAdd: tenant.maxUsers === -1 || users.length < tenant.maxUsers,
         };
+    },
+});
+
+// Upgrade tenant plan after successful checkout (one-time purchase)
+export const upgradeTenant = mutation({
+    args: {
+        tenantId: v.id("tenants"),
+        plan: v.union(v.literal("pro"), v.literal("team")),
+        stripeCustomerId: v.optional(v.string()),
+    },
+    handler: async (ctx, { tenantId, plan, stripeCustomerId }) => {
+        const tenant = await ctx.db.get(tenantId);
+        if (!tenant) throw new Error("Tenant not found");
+
+        const limits = PLAN_LIMITS[plan as PlanId];
+
+        // Update tenant with new plan
+        await ctx.db.patch(tenantId, {
+            plan,
+            maxUsers: limits.maxUsers,
+            maxSessionsPerUser: limits.maxSessionsPerUser,
+            ...(stripeCustomerId && { stripeCustomerId }),
+            updatedAt: Date.now(),
+        });
+
+        return { success: true, plan };
     },
 });

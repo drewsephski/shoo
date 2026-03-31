@@ -15,7 +15,7 @@ export default defineSchema({
         plan: v.union(
             v.literal("free"),
             v.literal("pro"),
-            v.literal("enterprise")
+            v.literal("team")
         ),
         stripeCustomerId: v.optional(v.string()),
         stripeSubscriptionId: v.optional(v.string()),
