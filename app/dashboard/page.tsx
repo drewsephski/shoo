@@ -9,6 +9,7 @@ import { Id } from "../../convex/_generated/dataModel";
 import { useShooAuth } from "../../lib/shoo-convex";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
     ArrowRight,
@@ -60,6 +61,34 @@ const slideVariants = {
 };
 
 export default function TenantDashboard() {
+    return (
+        <Suspense fallback={<DashboardLoading />}>
+            <TenantDashboardContent />
+        </Suspense>
+    );
+}
+
+function DashboardLoading() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-stone-100">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
+            >
+                <div className="flex justify-center mb-6">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                        <RefreshCw className="h-6 w-6 animate-spin text-white" />
+                    </div>
+                </div>
+                <p className="font-serif text-xl text-stone-800">Loading...</p>
+            </motion.div>
+        </div>
+    );
+}
+
+function TenantDashboardContent() {
     const { identity } = useShooAuth();
     const userId = identity?.userId;
     const searchParams = useSearchParams();
