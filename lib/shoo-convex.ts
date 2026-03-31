@@ -4,7 +4,7 @@ import { createShooConvexAuth, useShooAuth as useShooAuthLib, type ShooAuthOptio
 
 // Shared auth configuration - centralized so all components use same config
 const SHOO_CONFIG: ShooAuthOptions & { autoHandleCallback?: boolean } = {
-    shooBaseUrl: "https://shooauth.com",
+    shooBaseUrl: "https://shoo.dev",
     callbackPath: "/auth/callback",
     autoHandleCallback: false, // Disable auto-handling - we handle it manually in callback page
 };
