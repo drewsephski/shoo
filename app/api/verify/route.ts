@@ -1,7 +1,9 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { hashString } from "@/lib/crypto";
 
-const SHOO_BASE_URL = process.env.SHOO_BASE_URL || "https://shoo.dev";
+export const dynamic = "force-dynamic";
+
+const SHOO_BASE_URL = process.env.SHOO_BASE_URL || "https://shooauth.com";
 const SHOO_ISSUER = process.env.SHOO_ISSUER || SHOO_BASE_URL;
 
 const jwks = createRemoteJWKSet(

@@ -16,7 +16,7 @@ let shooAuth: ReturnType<typeof createShooAuth> | null = null;
 function getShooAuth() {
     if (!shooAuth && typeof window !== "undefined") {
         shooAuth = createShooAuth({
-            shooBaseUrl: "https://shoo.dev",
+            shooBaseUrl: "https://shooauth.com",
             callbackPath: "/auth/callback",
         });
     }

@@ -173,7 +173,7 @@ export default function DocsPage() {
                                     to any application in minutes. No signup required, no API keys, no backend needed.
                                 </p>
                                 <p>
-                                    Point your redirect URI to <code>shoo.dev</code> and go. Shoo handles the OAuth flow,
+                                    Point your redirect URI to <code>shooauth.com</code> and go. Shoo handles the OAuth flow,
                                     identity tokens, and session management. You get verified user identities via JWT.
                                 </p>
 
@@ -184,10 +184,10 @@ export default function DocsPage() {
                                 </p>
                                 <CodeBlock
                                     code={`<!-- 1. Add the script -->
-<script src="https://shoo.dev/shoo.js"></script>
+<script src="https://shooauth.com/shoo.js"></script>
 
 <!-- 2. Add a login link -->
-<a href="https://shoo.dev/sign-in?redirect_uri=https://yourapp.com/callback">
+<a href="https://shooauth.com/sign-in?redirect_uri=https://yourapp.com/callback">
   Login
 </a>`}
                                     language="html"
@@ -209,11 +209,11 @@ bun add @shoojs/react @shoojs/auth
 
                                 <h2 id="oauth">OAuth with Shoo</h2>
                                 <p>
-                                    Shoo provides OAuth/OpenID Connect authentication. Users are redirected to shoo.dev
+                                    Shoo provides OAuth/OpenID Connect authentication. Users are redirected to shooauth.com
                                     to complete sign-in, then returned to your application with a verified identity token.
                                 </p>
                                 <CodeBlock
-                                    code={`// Sign in with Shoo (redirects to shoo.dev)
+                                    code={`// Sign in with Shoo (redirects to shooauth.com)
 await signIn({ requestPii: true });  // Request name/email
 
 // Or minimal sign-in (just userId)
@@ -295,7 +295,7 @@ export default function Callback() {
                                 <h2 id="config">Configuration Options</h2>
                                 <CodeBlock
                                     code={`useShooAuth({
-  shooBaseUrl: "https://shoo.dev",      // Shoo OAuth server
+  shooBaseUrl: "https://shooauth.com",      // Shoo OAuth server
   callbackPath: "/auth/callback",       // OAuth callback route
   autoHandleCallback: true,             // Auto-process callback params
   autoSessionMonitor: true,             // Enable background session checks
@@ -375,7 +375,7 @@ clearIdentity();`}
                                     code={`import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const jwks = createRemoteJWKSet(
-  new URL("/.well-known/jwks.json", "https://shoo.dev")
+  new URL("/.well-known/jwks.json", "https://shooauth.com")
 );
 
 // In your API route
@@ -383,7 +383,7 @@ export async function POST(request: Request) {
   const { idToken } = await request.json();
   
   const { payload } = await jwtVerify(idToken, jwks, {
-    issuer: "https://shoo.dev",
+    issuer: "https://shooauth.com",
     audience: "origin:https://yourdomain.com",
   });
   
@@ -396,13 +396,13 @@ export async function POST(request: Request) {
 
                                 <h2 id="env">Environment Setup</h2>
                                 <p>
-                                    No environment variables required for basic usage. Just point your redirect URI to shoo.dev.
+                                    No environment variables required for basic usage. Just point your redirect URI to shooauth.com.
                                     For the React SDK, you can optionally configure the base URL.
                                 </p>
                                 <CodeBlock
                                     code={`// Optional: Configure SDK (defaults shown)
 useShooAuth({
-  shooBaseUrl: "https://shoo.dev",
+  shooBaseUrl: "https://shooauth.com",
   callbackPath: "/auth/callback",
 });`}
                                     language="typescript"

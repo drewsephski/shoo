@@ -243,7 +243,7 @@ export default function Hero() {
                                             />
                                             <span className="text-xs font-medium text-stone-600">
                                                 {authState === 'idle' && 'Ready to authenticate...'}
-                                                {authState === 'typing' && 'Redirecting to shoo.dev...'}
+                                                {authState === 'typing' && 'Redirecting to shooauth.com...'}
                                                 {authState === 'submitting' && 'Completing OAuth flow...'}
                                                 {authState === 'verifying' && 'Verifying identity token...'}
                                                 {authState === 'success' && 'Authentication successful'}
@@ -481,7 +481,7 @@ export default function Hero() {
                                             OAuth Provider
                                         </h3>
                                         <p className="text-base leading-relaxed text-stone-500 max-w-md">
-                                            Shoo is the auth provider. No need for Auth0, Clerk, or Google. Just point your redirect URI to shoo.dev and get verified user identities via JWT.
+                                            Shoo is the auth provider. No need for Auth0, Clerk, or Google. Just point your redirect URI to shooauth.com and get verified user identities via JWT.
                                         </p>
                                     </div>
                                 </div>
@@ -544,7 +544,7 @@ export default function Hero() {
                                 </div>
                                 <div className="lg:col-span-5 lg:col-start-8 flex items-center">
                                     <div className="font-mono text-xs text-stone-400 bg-stone-100 px-4 py-3 rounded-lg">
-                                        https://shoo.dev/.well-known/jwks.json
+                                        https://shooauth.com/.well-known/jwks.json
                                     </div>
                                 </div>
                             </div>

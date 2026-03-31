@@ -1,7 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-const SHOO_BASE_URL = "https://shoo.dev";
-const SHOO_ISSUER = "https://shoo.dev";
+const SHOO_BASE_URL = "https://shooauth.com";
+const SHOO_ISSUER = "https://shooauth.com";
 const jwks = createRemoteJWKSet(
     new URL("/.well-known/jwks.json", SHOO_BASE_URL),
 );

@@ -477,7 +477,7 @@ function CreateTenantModal({
                             Slug <span className="text-stone-400 font-normal">(unique identifier)</span>
                         </label>
                         <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-sm">shoo.dev/app/</span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-sm">shooauth.com/app/</span>
                             <input
                                 type="text"
                                 value={slug}
@@ -942,7 +942,7 @@ function OverviewTab({
                         </div>
                         <p className="text-sm text-stone-600">
                             Add the Shoo script to your HTML:{" "}
-                            <code className="text-xs bg-white px-1.5 py-0.5 rounded border">{`<script src="https://shoo.dev/v1/shoo.js"></script>`}</code>
+                            <code className="text-xs bg-white px-1.5 py-0.5 rounded border">{`<script src="https://shooauth.com/v1/shoo.js"></script>`}</code>
                         </p>
                     </div>
                     <div className="flex items-start gap-3">

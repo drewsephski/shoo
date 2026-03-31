@@ -1,4 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+
+export const dynamic = "force-dynamic";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+    apiVersion: "2026-03-25.dahlia",
+});
 
 // Internal API route to handle billing upgrades
 // Called by Stripe webhook to update tenant plan

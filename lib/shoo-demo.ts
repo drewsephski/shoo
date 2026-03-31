@@ -16,7 +16,7 @@ import type {
 // Example: Manual client creation (not usually needed, useShooAuth does this)
 export const manualClient = typeof window !== "undefined"
     ? createShooAuth({
-          shooBaseUrl: "https://shoo.dev",
+          shooBaseUrl: "https://shooauth.com",
           callbackPath: "/auth/callback",
       })
     : null;
@@ -37,7 +37,7 @@ export function useShooAuthDemo() {
         authClient,         // Underlying ShooAuthClient
     } = useShooAuth({
         // Options
-        shooBaseUrl: "https://shoo.dev",
+        shooBaseUrl: "https://shooauth.com",
         callbackPath: "/auth/callback",
         autoHandleCallback: true,   // Auto exchange code on mount
         autoSessionMonitor: true,   // Background session checks
