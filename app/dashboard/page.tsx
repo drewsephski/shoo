@@ -228,7 +228,7 @@ export default function TenantDashboard() {
                                                                         ? "bg-blue-50 text-blue-600"
                                                                         : "bg-violet-50 text-violet-600"
                                                             }`}>
-                                                                {tenant.plan === "free" ? "starter" : tenant.plan === "enterprise" ? "team" : tenant.plan}
+                                                                {tenant.plan === "free" ? "starter" : tenant.plan}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -731,7 +731,7 @@ function TenantDetails({
                                             ? "bg-blue-50 text-blue-600"
                                             : "bg-violet-50 text-violet-600"
                                 }`}>
-                                    {tenant.plan === "free" ? "starter" : tenant.plan === "enterprise" ? "team" : tenant.plan}
+                                    {tenant.plan === "free" ? "starter" : tenant.plan}
                                 </span>
                             </div>
                         </div>
