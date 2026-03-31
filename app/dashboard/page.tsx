@@ -2,13 +2,14 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useShooAuth } from "../../lib/shoo-convex";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
     ArrowRight,
     Shield,
@@ -26,6 +27,8 @@ import {
     Globe,
     Lock,
     Zap,
+    CheckCircle2,
+    X,
 } from "lucide-react";
 
 // Animation variants
@@ -51,14 +54,25 @@ const slideVariants = {
     visible: {
         opacity: 1,
         x: 0,
-        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const },
+        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
     },
     exit: { opacity: 0, x: 20, transition: { duration: 0.3 } },
 };
 
 export default function TenantDashboard() {
-    const { identity, signOut } = useShooAuth();
+    const { identity } = useShooAuth();
     const userId = identity?.userId;
+    const searchParams = useSearchParams();
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    useEffect(() => {
+        if (searchParams.get("success") === "true") {
+            setShowSuccess(true);
+            // Auto-hide after 5 seconds
+            const timer = setTimeout(() => setShowSuccess(false), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams]);
 
     const tenants = useQuery(
         api.tenants.getUserTenants,
@@ -122,6 +136,29 @@ export default function TenantDashboard() {
 
     return (
         <div className="min-h-screen bg-stone-100 pb-12">
+            {/* Success Banner */}
+            <AnimatePresence>
+                {showSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+                    >
+                        <div className="flex items-center gap-3 rounded-xl bg-emerald-500 text-white px-5 py-3 shadow-lg shadow-emerald-500/25">
+                            <CheckCircle2 className="h-5 w-5" />
+                            <span className="font-medium">Payment successful! Your plan has been upgraded.</span>
+                            <button
+                                onClick={() => setShowSuccess(false)}
+                                className="ml-2 hover:bg-emerald-600 rounded-lg p-1 transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Main Content - Navbar is already provided by layout */}
             <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-28 pb-12">
                 <motion.div
@@ -191,7 +228,7 @@ export default function TenantDashboard() {
                                                                         ? "bg-blue-50 text-blue-600"
                                                                         : "bg-violet-50 text-violet-600"
                                                             }`}>
-                                                                {tenant.plan}
+                                                                {tenant.plan === "free" ? "starter" : tenant.plan === "enterprise" ? "team" : tenant.plan}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -214,7 +251,7 @@ export default function TenantDashboard() {
                                             animate="visible"
                                             exit="exit"
                                         >
-                                            <TenantDetails tenantId={selectedTenant} userId={userId} />
+                                            <TenantDetails tenantId={selectedTenant as Id<"tenants">} userId={userId} />
                                         </motion.div>
                                     ) : (
                                         <motion.div
@@ -694,7 +731,7 @@ function TenantDetails({
                                             ? "bg-blue-50 text-blue-600"
                                             : "bg-violet-50 text-violet-600"
                                 }`}>
-                                    {tenant.plan}
+                                    {tenant.plan === "free" ? "starter" : tenant.plan === "enterprise" ? "team" : tenant.plan}
                                 </span>
                             </div>
                         </div>
@@ -1114,15 +1151,15 @@ function BillingTab({
     const createCheckout = useMutation(api.billing.createCheckoutSession);
     const [isLoading, setIsLoading] = useState<string | null>(null);
 
-    const handleUpgrade = async (plan: "pro" | "enterprise") => {
+    const handleUpgrade = async (plan: "pro" | "team") => {
         setIsLoading(plan);
         try {
             const result = await createCheckout({
                 tenantId: tenant._id,
                 userId,
                 plan,
-                successUrl: `${window.location.origin}/tenant-dashboard?success=true`,
-                cancelUrl: `${window.location.origin}/tenant-dashboard?canceled=true`,
+                successUrl: `${window.location.origin}/dashboard?success=true`,
+                cancelUrl: `${window.location.origin}/dashboard?canceled=true`,
             });
 
             if (result.priceId) {
@@ -1147,12 +1184,16 @@ function BillingTab({
                     }),
                 });
 
-                const { sessionId, error } = await response.json();
+                const { sessionId, url, error } = await response.json();
 
                 if (error) throw new Error(error);
 
-                const { error: redirectError } = await stripe.redirectToCheckout({ sessionId });
-                if (redirectError) throw new Error(redirectError.message);
+                // Redirect to Stripe Checkout using the session URL
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    throw new Error("No checkout URL returned");
+                }
             }
         } catch (err) {
             console.error("Checkout failed:", err);
@@ -1165,30 +1206,48 @@ function BillingTab({
     const plans = [
         {
             id: "free",
-            name: "Free",
+            name: "Starter",
             price: 0,
             priceLabel: "Free",
-            description: "For personal projects and testing",
-            features: ["100 users", "Basic auth features", "Community support"],
+            description: "Self-hosted, full source code",
+            features: [
+                "Full production template",
+                "OAuth + session management",
+                "Rate limiting & audit logs",
+                "Device fingerprinting",
+                "Admin dashboard",
+                "Community Discord",
+            ],
             color: "stone",
         },
         {
             id: "pro",
             name: "Pro",
-            price: 29,
-            priceLabel: "$29/month",
-            description: "For growing applications",
-            features: ["10,000 users", "Advanced features", "Priority support", "Custom branding"],
+            price: 79,
+            priceLabel: "$79 one-time",
+            description: "Template + 1 year updates",
+            features: [
+                "Everything in Starter",
+                "1 year of updates",
+                "Priority Discord support",
+                "Video setup guide",
+            ],
             color: "blue",
             popular: true,
         },
         {
-            id: "enterprise",
-            name: "Enterprise",
-            price: null,
-            priceLabel: "Custom",
-            description: "For large-scale deployments",
-            features: ["Unlimited users", "SSO & SAML", "Dedicated support", "SLA guarantee"],
+            id: "team",
+            name: "Team",
+            price: 299,
+            priceLabel: "$299 one-time",
+            description: "Full package + implementation help",
+            features: [
+                "Everything in Pro",
+                "Lifetime updates",
+                "1:1 code review call (30 min)",
+                "Email support (30 days)",
+                "Custom guidance",
+            ],
             color: "violet",
         },
     ];
@@ -1219,9 +1278,9 @@ function BillingTab({
                                 Active
                             </span>
                         )}
-                        {planDetails.price && (
+                        {planDetails.priceLabel && (
                             <span className="text-lg font-medium text-stone-900">
-                                ${planDetails.price / 100}/month
+                                {planDetails.priceLabel}
                             </span>
                         )}
                     </div>
@@ -1280,10 +1339,10 @@ function BillingTab({
 
                             {!isCurrent && plan.id !== "free" && (
                                 <button
-                                    onClick={() => handleUpgrade(plan.id as "pro" | "enterprise")}
+                                    onClick={() => handleUpgrade(plan.id as "pro" | "team")}
                                     disabled={isLoadingState}
                                     className={`w-full rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        plan.id === "pro"
+                                        plan.id === "pro" || plan.id === "team"
                                             ? "bg-gradient-to-b from-blue-400 to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:from-blue-400/90 hover:to-blue-600/90"
                                             : "border border-stone-300 text-stone-700 hover:bg-stone-50"
                                     }`}
@@ -1314,7 +1373,7 @@ function BillingTab({
                             {!isCurrent && plan.id === "free" && (
                                 <button
                                     disabled
-                                    className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 text-sm font-semibold text-stone-400 cursor-default"
+                                    className="w-full rounded-xl border border-stone-200 bg-stone-100 py-3 text-sm font-semibold text-stone-500 cursor-default"
                                 >
                                     Included
                                 </button>
