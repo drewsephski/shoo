@@ -1010,7 +1010,7 @@ function SettingsTab({ tenant, userId }: { tenant: any; userId: string }) {
                 userId,
                 updates: {
                     name,
-                    allowedOrigins: origins.split(",").map((o) => o.trim()).filter(Boolean),
+                    allowedOrigins: origins.split(",").map((o: string) => o.trim()).filter(Boolean),
                 },
             });
         } finally {
