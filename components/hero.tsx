@@ -381,9 +381,94 @@ export default function Hero() {
                                                         </svg>
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium text-stone-900">Sarah Evans</p>
+                                                        <p className="text-sm font-medium text-stone-900">Theo GG</p>
                                                         <p className="text-xs text-stone-500">Session active · 3 devices</p>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Dashboard State - Mini Dashboard Preview */}
+                                        <div 
+                                            className="overflow-hidden transition-all duration-700"
+                                            style={{
+                                                maxHeight: authState === 'dashboard' ? '400px' : '0',
+                                                opacity: authState === 'dashboard' ? 1 : 0
+                                            }}
+                                        >
+                                            <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white p-5">
+                                                {/* Dashboard Header */}
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                                                        <span className="text-sm font-semibold text-white">SF</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-stone-900">Theo</p>
+                                                        <p className="text-xs text-stone-500">theo@gg.com</p>
+                                                    </div>
+                                                    <div className="ml-auto">
+                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-600 border border-emerald-100">
+                                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                            Active
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Session Stats */}
+                                                <div className="grid grid-cols-3 gap-2 mb-4">
+                                                    <div className="rounded-lg bg-white border border-stone-100 p-3 text-center">
+                                                        <p className="text-lg font-semibold text-stone-900">3</p>
+                                                        <p className="text-[10px] text-stone-500 uppercase tracking-wider">Devices</p>
+                                                    </div>
+                                                    <div className="rounded-lg bg-white border border-stone-100 p-3 text-center">
+                                                        <p className="text-lg font-semibold text-stone-900">12</p>
+                                                        <p className="text-[10px] text-stone-500 uppercase tracking-wider">Apps</p>
+                                                    </div>
+                                                    <div className="rounded-lg bg-white border border-stone-100 p-3 text-center">
+                                                        <p className="text-lg font-semibold text-stone-900">2d</p>
+                                                        <p className="text-[10px] text-stone-500 uppercase tracking-wider">Session</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Active Sessions */}
+                                                <div className="space-y-2">
+                                                    <p className="text-[11px] font-medium uppercase tracking-wider text-stone-400">Active Sessions</p>
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center gap-3 rounded-lg bg-white border border-stone-100 p-2.5">
+                                                            <div className="h-7 w-7 rounded-md bg-stone-100 flex items-center justify-center">
+                                                                <svg className="h-4 w-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+                                                                </svg>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs font-medium text-stone-900">MacBook Pro</p>
+                                                                <p className="text-[10px] text-stone-500 truncate">Chrome • San Francisco, CA</p>
+                                                            </div>
+                                                            <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 rounded-lg bg-white border border-stone-100 p-2.5">
+                                                            <div className="h-7 w-7 rounded-md bg-stone-100 flex items-center justify-center">
+                                                                <svg className="h-4 w-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                                                                </svg>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs font-medium text-stone-900">iPhone 15</p>
+                                                                <p className="text-[10px] text-stone-500 truncate">Safari • San Francisco, CA</p>
+                                                            </div>
+                                                            <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Quick Actions */}
+                                                <div className="mt-4 flex gap-2">
+                                                    <button className="flex-1 rounded-lg bg-stone-900 py-2 text-xs font-medium text-white transition-all hover:bg-stone-800">
+                                                        Manage Account
+                                                    </button>
+                                                    <button className="flex-1 rounded-lg border border-stone-200 bg-white py-2 text-xs font-medium text-stone-700 transition-all hover:bg-stone-50">
+                                                        Sign Out
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -393,7 +478,9 @@ export default function Hero() {
                                             disabled
                                             className="w-full rounded-lg bg-stone-900 py-2.5 text-sm font-medium text-white transition-all duration-200"
                                             style={{
-                                                opacity: authState === 'idle' ? 0.6 : 1,
+                                                opacity: authState === 'idle' ? 0.6 : authState === 'dashboard' ? 0 : 1,
+                                                maxHeight: authState === 'dashboard' ? '0' : '44px',
+                                                overflow: 'hidden',
                                                 boxShadow: authState === 'submitting' 
                                                     ? '0 0 20px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255,255,255,0.15)'
                                                     : authState === 'success'
